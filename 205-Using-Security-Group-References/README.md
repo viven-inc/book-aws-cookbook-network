@@ -34,7 +34,9 @@ $INSTANCE_ID_2 --groups $DEFAULT_VPC_SECURITY_GROUP
 
 ### Delete the security group that you created:
 
-`aws ec2 delete-security-group --group-id $SG_ID`
+```
+aws ec2 delete-security-group --group-id $SG_ID
+```
 
 ### To clean up the environment variables, run the helper.py script in this recipe’s cdk- directory with the --unset flag, and copy the output to your terminal to export variables:
 
@@ -85,3 +87,36 @@ aws ec2 associate-iam-instance-profile \
 
 `aws ssm start-session --target $INSTANCE_ID_3`
 
+## TODO 
+- Create a VPC
+```
+set VPC_ID $(aws ec2 create-vpc --cidr-block 10.10.0.0/16 \
+          --tag-specifications \
+      'ResourceType=vpc,Tags=[{Key=Name,Value=AWSCookbook201}]' \
+          --output text --query Vpc.VpcId --profile yoshida_playground_shintaro_yoshida)
+```
+
+- Create a Security Group
+```
+set SG_ID $(aws ec2 create-security-group \
+          --group-name AWSCookbook205Sg \
+          --description "Instance Security Group" --vpc-id $VPC_ID \
+          --output text --query GroupId --profile yoshida_playground_shintaro_yoshida)
+```
+
+- Create a Route Table 
+```
+set ROUTE_TABLE_ID $(aws ec2 create-route-table --vpc-id $VPC_ID \
+    --tag-specifications \
+    ourceType=route-table,Tags=[{Key=Name,Value=AWSCookbook202}]' \
+    --output text --query RouteTable.RouteTableId --profile yoshida_playground_shintaro_yoshida)
+```
+
+- Attach Instance with Security Group 
+```
+aws ec2 modify-instance-attribute --instance-id $INSTANCE_ID_1 \
+    --groups $SG_ID
+
+aws ec2 modify-instance-attribute --instance-id $INSTANCE_ID_2 \
+    --groups $SG_ID
+```
