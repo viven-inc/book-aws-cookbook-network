@@ -95,6 +95,44 @@ set VPC_ID $(aws ec2 create-vpc --cidr-block 10.10.0.0/16 \
       'ResourceType=vpc,Tags=[{Key=Name,Value=AWSCookbook201}]' \
           --output text --query Vpc.VpcId --profile yoshida_playground_shintaro_yoshida)
 ```
+- 2.1 
+```
+aws ec2 describe-vpcs --vpc-ids $VPC_ID --profile yoshida_playground_shintaro_yoshida
+aws ec2 associate-vpc-cidr-block \
+        --cidr-block 10.11.0.0/16 \
+        --vpc-id $VPC_ID --profile yoshida_playground_shintaro_yoshida
+
+aws ec2 create-vpc --cidr-block 10.10.0.0/16 \
+    --amazon-provided-ipv6-cidr-block \
+    --tag-specifications 'ResourceType=vpc,Tags=[{Key=Name,Value=AWSCookbook201-IPv6}]' \
+    --profile yoshida_playground_shintaro_yoshida
+```
+
+- Create a Route Table 
+```
+set ROUTE_TABLE_ID $(aws ec2 create-route-table --vpc-id $VPC_ID \
+                                                  --tag-specifications \
+                                                  'ResourceType=route-table,Tags=[{Key=Name,Value=AWSCookbook202}]' \
+                                                  --output text --query RouteTable.RouteTableId --profile yoshida_playground_shintaro_yoshida)
+
+set SUBNET_ID_1 $(aws ec2 create-subnet --vpc-id $VPC_ID \
+    --cidr-block 10.13.0.0/24 --availability-zone {$AWS_REGION}a \
+    --tag-specifications \
+    'ResourceType=subnet,Tags=[{Key=Name,Value=AWSCookbook202a}]' \
+    --output text --query Subnet.SubnetId --profile yoshida_playground_shintaro_yoshida)
+set SUBNET_ID_2 $(aws ec2 create-subnet --vpc-id $VPC_ID \
+    --cidr-block 10.13.1.0/24 --availability-zone {$AWS_REGION}c \
+    --tag-specifications \
+    'ResourceType=subnet,Tags=[{Key=Name,Value=AWSCookbook202b}]' \
+    --output text --query Subnet.SubnetId --profile yoshida_playground_shintaro_yoshida)
+set AWS_REGION ap-northeast-1
+aws ec2 describe-availability-zones --region $AWS_REGION
+aws ec2 associate-route-table \
+    --route-table-id $ROUTE_TABLE_ID --subnet-id $SUBNET_ID_1 --profile yoshida_playground_shintaro_yoshida
+
+aws ec2 associate-route-table \
+    --route-table-id $ROUTE_TABLE_ID --subnet-id $SUBNET_ID_2 --profile yoshida_playground_shintaro_yoshida
+```
 
 - Create a Security Group
 ```
@@ -103,15 +141,6 @@ set SG_ID $(aws ec2 create-security-group \
           --description "Instance Security Group" --vpc-id $VPC_ID \
           --output text --query GroupId --profile yoshida_playground_shintaro_yoshida)
 ```
-
-- Create a Route Table 
-```
-set ROUTE_TABLE_ID $(aws ec2 create-route-table --vpc-id $VPC_ID \
-    --tag-specifications \
-    ourceType=route-table,Tags=[{Key=Name,Value=AWSCookbook202}]' \
-    --output text --query RouteTable.RouteTableId --profile yoshida_playground_shintaro_yoshida)
-```
-
 - Attach Instance with Security Group 
 ```
 aws ec2 modify-instance-attribute --instance-id $INSTANCE_ID_1 \
