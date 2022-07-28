@@ -149,7 +149,18 @@ aws ec2 attach-internet-gateway \
                                                       --internet-gateway-id $INET_GATEWAY_ID --vpc-id $VPC_ID --profile yoshida_playground_shintaro_yoshida
 aws ec2 create-route --route-table-id $ROUTE_TABLE_ID \
                                                       --destination-cidr-block 0.0.0.0/0 --gateway-id $INET_GATEWAY_ID --profile yoshida_playground_shintaro_yoshida
+set SG_ID $(aws ec2 create-security-group \
+                                                    --group-name AWSCookbook205Sg \
+                                                    --description "Instance Security Group" --vpc-id $VPC_ID \
+                                                    --output text --query GroupId --profile yoshida_playground_shintaro_yoshida)
+aws ec2 modify-instance-attribute --instance-id $INSTANCE_ID \
+                                                        --groups $SG_ID
+
+aws ec2 modify-instance-attribute --instance-id $INSTANCE_ID \
+                                                        --groups $SG_ID --profile yoshida_playground_shintaro_yoshida
 ```
+
+
 
 - Create a Security Group
 ```
